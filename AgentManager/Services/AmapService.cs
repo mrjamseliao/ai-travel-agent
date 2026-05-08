@@ -45,7 +45,7 @@ public class AmapService
 
         try
         {
-            var url = $"https://restapi.amap.com/v3/place/text?keywords={HttpUtility.UrlEncode(keywords)}&city={HttpUtility.UrlEncode(city)}&offset=1&key={_settings.AmapWebKey}";
+            var url = $"https://restapi.amap.com/v3/place/text?keywords={HttpUtility.UrlEncode(keywords)}&city={HttpUtility.UrlEncode(city)}&offset=20&key={_settings.AmapWebKey}";
 
             if (citylimit)
             {

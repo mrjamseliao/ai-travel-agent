@@ -417,100 +417,295 @@ public class TripPlannerAgent
     }
 
     private async Task<TripPlan> GenerateMockTripPlanAsync(TripRequest request)
-    {
-        Console.WriteLine("使用模拟模式生成旅行计划...");
-
-        var cityInfo = GetCityInfo(request.City);
-        var days = new List<DayPlan>();
-        var startDate = DateTime.Parse(request.StartDate);
-        var weatherList = new List<WeatherInfo>();
-
-        for (int i = 0; i < request.TravelDays; i++)
         {
-            var currentDate = startDate.AddDays(i);
+            Console.WriteLine("使用模拟模式生成旅行计划...");
 
-            weatherList.Add(new WeatherInfo
-            {
-                Date = currentDate.ToString("yyyy-MM-dd"),
-                DayWeather = "晴",
-                NightWeather = "多云",
-                DayTemp = 25 + i,
-                NightTemp = 15 + i,
-                WindDirection = "南风",
-                WindPower = "1-3级"
-            });
+            var cities = ParseCities(request.City);
+            var days = new List<DayPlan>();
+            var startDate = DateTime.Parse(request.StartDate);
+            var weatherList = new List<WeatherInfo>();
+            var totalAttractions = 0;
+            var totalHotels = 0;
+            var totalMeals = 0;
 
-            var dayAttractions = new List<Attraction>();
-            for (int j = 0; j < 3; j++)
+            int daysPerCity = request.TravelDays / cities.Count;
+            int extraDays = request.TravelDays % cities.Count;
+
+            int dayIndex = 0;
+            for (int cityIdx = 0; cityIdx < cities.Count; cityIdx++)
             {
-                var idx = (i * 3 + j) % ((Array)cityInfo.Attractions).Length;
-                var attr = cityInfo.Attractions[idx];
-                dayAttractions.Add(new Attraction
+                var city = cities[cityIdx];
+                var cityInfo = await GetCityInfoAsync(city);
+                int daysForCity = daysPerCity + (cityIdx < extraDays ? 1 : 0);
+
+                for (int i = 0; i < daysForCity; i++)
                 {
-                    Name = attr.Name,
-                    Address = attr.Address,
-                    Location = new Location { Longitude = attr.Longitude, Latitude = attr.Latitude },
-                    VisitDuration = 120,
-                    Description = attr.Description,
-                    Category = attr.Category,
-                    TicketPrice = attr.TicketPrice,
-                    ReservationRequired = false,
-                    ImageUrl = attr.ImageUrl
-                });
+                    var currentDate = startDate.AddDays(dayIndex);
+
+                    weatherList.Add(new WeatherInfo
+                    {
+                        Date = currentDate.ToString("yyyy-MM-dd"),
+                        DayWeather = "晴",
+                        NightWeather = "多云",
+                        DayTemp = 25 + dayIndex,
+                        NightTemp = 15 + dayIndex,
+                        WindDirection = "南风",
+                        WindPower = "1-3级"
+                    });
+
+                    var dayAttractions = new List<Attraction>();
+                    for (int j = 0; j < 3; j++)
+                    {
+                        var idx = (dayIndex * 3 + j) % ((Array)cityInfo.Attractions).Length;
+                        var attr = cityInfo.Attractions[idx];
+                        dayAttractions.Add(new Attraction
+                        {
+                            Name = attr.Name,
+                            Address = attr.Address,
+                            Location = new Location { Longitude = attr.Longitude, Latitude = attr.Latitude },
+                            VisitDuration = 120,
+                            Description = attr.Description,
+                            Category = attr.Category,
+                            TicketPrice = attr.TicketPrice,
+                            ReservationRequired = false,
+                            ImageUrl = attr.ImageUrl
+                        });
+                    }
+
+                    days.Add(new DayPlan
+                    {
+                        Date = currentDate.ToString("yyyy-MM-dd"),
+                        DayIndex = dayIndex + 1,
+                        Description = $"第{dayIndex + 1}天：{city} - {cityInfo.DayDescriptions[i % ((Array)cityInfo.DayDescriptions).Length]}",
+                        Transportation = request.Transportation,
+                        Accommodation = request.Accommodation,
+                        Hotel = new Hotel
+                        {
+                            Name = cityInfo.HotelName,
+                            Address = cityInfo.HotelAddress,
+                            Location = new Location { Longitude = cityInfo.HotelLng, Latitude = cityInfo.HotelLat },
+                            PriceRange = cityInfo.HotelPriceRange,
+                            Rating = "4.5",
+                            Distance = "距离景点中心约2公里",
+                            Type = request.Accommodation,
+                            EstimatedCost = cityInfo.HotelCost
+                        },
+                        Attractions = dayAttractions,
+                        Meals = new List<Meal>
+                        {
+                            new Meal { Type = "breakfast", Name = cityInfo.Breakfast, Description = "当地特色早餐", EstimatedCost = 30 },
+                            new Meal { Type = "lunch", Name = cityInfo.Lunch, Description = "当地特色午餐", EstimatedCost = 60 },
+                            new Meal { Type = "dinner", Name = cityInfo.Dinner, Description = "当地特色晚餐", EstimatedCost = 80 }
+                        }
+                    });
+
+                    totalAttractions += dayAttractions.Sum(a => a.TicketPrice);
+                    totalHotels += cityInfo.HotelCost;
+                    totalMeals += 170;
+                    dayIndex++;
+                }
             }
 
-            days.Add(new DayPlan
+            var suggestions = string.Join(" ", cities.Select(c => GetStaticCityInfo(c).Suggestions));
+
+            return new TripPlan
             {
-                Date = currentDate.ToString("yyyy-MM-dd"),
-                DayIndex = i + 1,
-                Description = $"第{i + 1}天：{cityInfo.DayDescriptions[i % ((Array)cityInfo.DayDescriptions).Length]}",
-                Transportation = request.Transportation,
-                Accommodation = request.Accommodation,
-                Hotel = new Hotel
+                City = request.City,
+                StartDate = request.StartDate,
+                EndDate = request.EndDate,
+                Days = days,
+                WeatherInfo = weatherList,
+                OverallSuggestions = $"这是为您规划的{request.City}{request.TravelDays}日游行程。{suggestions}\n\n出行提示：\n1. 建议提前预约热门景点门票\n2. {request.Transportation}出行请提前规划路线\n3. 注意天气变化，做好防晒或防雨准备",
+                Budget = new Budget
                 {
-                    Name = cityInfo.HotelName,
-                    Address = cityInfo.HotelAddress,
-                    Location = new Location { Longitude = cityInfo.HotelLng, Latitude = cityInfo.HotelLat },
-                    PriceRange = cityInfo.HotelPriceRange,
-                    Rating = "4.5",
-                    Distance = "距离景点中心约2公里",
-                    Type = request.Accommodation,
-                    EstimatedCost = cityInfo.HotelCost
-                },
-                Attractions = dayAttractions,
-                Meals = new List<Meal>
-                {
-                    new Meal { Type = "breakfast", Name = cityInfo.Breakfast, Description = "当地特色早餐", EstimatedCost = 30 },
-                    new Meal { Type = "lunch", Name = cityInfo.Lunch, Description = "当地特色午餐", EstimatedCost = 60 },
-                    new Meal { Type = "dinner", Name = cityInfo.Dinner, Description = "当地特色晚餐", EstimatedCost = 80 }
+                    TotalAttractions = totalAttractions,
+                    TotalHotels = totalHotels,
+                    TotalMeals = totalMeals,
+                    TotalTransportation = request.TravelDays * 50,
+                    Total = totalAttractions + totalHotels + totalMeals + request.TravelDays * 50
                 }
-            });
+            };
         }
 
-        int totalAttractions = days.Sum(d => d.Attractions.Sum(a => a.TicketPrice));
-        int totalHotels = days.Count * cityInfo.HotelCost;
-        int totalMeals = days.Count * 170;
-
-        return new TripPlan
+        private List<string> ParseCities(string cityInput)
         {
-            City = request.City,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
-            Days = days,
-            WeatherInfo = weatherList,
-            OverallSuggestions = $"这是为您规划的{request.City}{request.TravelDays}日游行程。{cityInfo.Suggestions}\n\n出行提示：\n1. 建议提前预约热门景点门票\n2. {request.Transportation}出行请提前规划路线\n3. 注意天气变化，做好防晒或防雨准备",
-            Budget = new Budget
+            var separators = new[] { "-", "、", "，", ",", "和", "与", "到" };
+            var cities = cityInput.Split(separators, StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(c => c.Trim())
+                                 .Where(c => !string.IsNullOrWhiteSpace(c))
+                                 .ToList();
+
+            if (cities.Count == 0)
             {
-                TotalAttractions = totalAttractions,
-                TotalHotels = totalHotels,
-                TotalMeals = totalMeals,
-                TotalTransportation = request.TravelDays * 50,
-                Total = totalAttractions + totalHotels + totalMeals + request.TravelDays * 50
+                cities.Add(cityInput);
             }
+
+            return cities;
+        }
+
+    private async Task<dynamic> GetCityInfoAsync(string city)
+    {
+        var amapService = AmapService.GetInstance();
+        var settings = ConfigurationLoader.LoadSettings();
+
+        List<POIInfo> amapAttractions = new List<POIInfo>();
+        
+        if (!string.IsNullOrEmpty(settings.AmapWebKey))
+        {
+            try
+            {
+                Console.WriteLine($"尝试从高德地图获取{city}的景点数据...");
+                
+                var allAttractions = new List<POIInfo>();
+                var keywords = new[] { "景点", "景区", "旅游", "风景名胜", "古城", "古镇", "古迹", "文化", "历史", "名山", "风景" };
+                
+                foreach (var keyword in keywords)
+                {
+                    var attractions = await amapService.SearchPOIAsync(keyword, city);
+                    allAttractions.AddRange(attractions);
+                    if (allAttractions.Count >= 12) break;
+                    await Task.Delay(100);
+                }
+
+                if (allAttractions.Count < 6)
+                {
+                    Console.WriteLine($"当前城市景点不足，尝试扩大搜索范围...");
+                    var broaderKeywords = new[] { "古城", "古镇", "5A景区", "4A景区", "著名景点" };
+                    foreach (var keyword in broaderKeywords)
+                    {
+                        var attractions = await amapService.SearchPOIAsync(keyword, city, false);
+                        allAttractions.AddRange(attractions);
+                        if (allAttractions.Count >= 12) break;
+                        await Task.Delay(100);
+                    }
+                }
+
+                var famousAttractions = GetFamousAttractionsForCity(city);
+                foreach (var attraction in famousAttractions)
+                {
+                    var results = await amapService.SearchPOIAsync(attraction, "", false);
+                    if (results.Any())
+                    {
+                        Console.WriteLine($"搜索到著名景点: {attraction}");
+                        allAttractions.AddRange(results);
+                    }
+                }
+                
+                amapAttractions = allAttractions.DistinctBy(p => p.Name).Take(12).ToList();
+                
+                Console.WriteLine($"从高德地图获取到 {amapAttractions.Count} 个景点: {string.Join(", ", amapAttractions.Select(p => p.Name))}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"从高德地图获取数据失败: {ex.Message}");
+            }
+        }
+
+        var staticInfo = GetStaticCityInfo(city);
+        var staticAttractions = ((Array)staticInfo.Attractions).Cast<dynamic>().ToList();
+        
+        var combinedAttractions = new List<dynamic>();
+        var usedNames = new HashSet<string>();
+
+        var famousAttractionNames = GetFamousAttractionsForCity(city);
+        var highPriorityKeywords = new HashSet<string> { "古城", "古镇", "故居", "纪念馆", "文化", "历史", "古迹", "寺", "庙", "祠", "山", "岩", "洞", "瀑布", "峡谷", "湖", "河", "泉", "5A", "景区", "风景" };
+        var lowPriorityKeywords = new HashSet<string> { "公园", "广场", "绿地", "运动", "健身", "社区", "街道", "路", "巷" };
+
+        var existingAttractionNames = amapAttractions.Select(p => p.Name.ToLower()).ToHashSet();
+        var missedFamousAttractions = famousAttractionNames.Where(f => !existingAttractionNames.Any(n => n.Contains(f.ToLower()) || f.ToLower().Contains(n))).ToList();
+        
+        if (missedFamousAttractions.Any())
+        {
+            Console.WriteLine($"补充未搜索到的著名景点: {string.Join(", ", missedFamousAttractions)}");
+            foreach (var famous in missedFamousAttractions)
+            {
+                amapAttractions.Add(new POIInfo
+                {
+                    Name = famous,
+                    Address = $"{city}{famous}",
+                    Type = "著名景点",
+                    Location = new Location { Longitude = 116.40 + amapAttractions.Count * 0.01, Latitude = 39.90 + amapAttractions.Count * 0.01 }
+                });
+            }
+        }
+
+        var prioritizedAmapAttractions = amapAttractions
+            .OrderByDescending(poi => 
+            {
+                var name = (poi.Name ?? "").ToLower();
+                var type = (poi.Type ?? "").ToLower();
+                
+                foreach (var famous in famousAttractionNames)
+                {
+                    var famousLower = famous.ToLower();
+                    if (name.Contains(famousLower) || famousLower.Contains(name) || name.Replace("景区", "").Contains(famousLower) || famousLower.Contains(name.Replace("景区", "")))
+                    {
+                        return 3;
+                    }
+                }
+                if (highPriorityKeywords.Any(t => name.Contains(t.ToLower()) || type.Contains(t.ToLower())))
+                    return 2;
+                if (lowPriorityKeywords.Any(t => name.Contains(t.ToLower()) || type.Contains(t.ToLower())))
+                    return 0;
+                return 1;
+            })
+            .ToList();
+
+        foreach (var poi in prioritizedAmapAttractions)
+        {
+            if (!usedNames.Contains(poi.Name))
+            {
+                usedNames.Add(poi.Name);
+                combinedAttractions.Add(new
+                {
+                    Name = poi.Name,
+                    Address = poi.Address,
+                    Longitude = poi.Location?.Longitude ?? 116.40 + combinedAttractions.Count * 0.01,
+                    Latitude = poi.Location?.Latitude ?? 39.90 + combinedAttractions.Count * 0.01,
+                    Description = $"{poi.Name}是{city}著名的{poi.Type}景点",
+                    Category = GetCategoryFromType(poi.Type),
+                    TicketPrice = GetRandomTicketPrice(),
+                    ImageUrl = ""
+                });
+            }
+            if (combinedAttractions.Count >= 6) break;
+        }
+
+        foreach (var staticAttr in staticAttractions)
+        {
+            if (!usedNames.Contains(staticAttr.Name))
+            {
+                usedNames.Add(staticAttr.Name);
+                combinedAttractions.Add(staticAttr);
+            }
+            if (combinedAttractions.Count >= 6) break;
+        }
+
+        if (combinedAttractions.Count == 0)
+        {
+            combinedAttractions = staticAttractions.Take(6).ToList();
+        }
+
+        Console.WriteLine($"最终使用 {combinedAttractions.Count} 个景点: {string.Join(", ", combinedAttractions.Select(a => a.Name))}");
+
+        return new
+        {
+            Attractions = combinedAttractions.ToArray(),
+            DayDescriptions = staticInfo.DayDescriptions,
+            HotelName = staticInfo.HotelName,
+            HotelAddress = staticInfo.HotelAddress,
+            HotelLng = staticInfo.HotelLng,
+            HotelLat = staticInfo.HotelLat,
+            HotelPriceRange = staticInfo.HotelPriceRange,
+            HotelCost = staticInfo.HotelCost,
+            Breakfast = staticInfo.Breakfast,
+            Lunch = staticInfo.Lunch,
+            Dinner = staticInfo.Dinner,
+            Suggestions = staticInfo.Suggestions
         };
     }
 
-    private dynamic GetCityInfo(string city)
+    private dynamic GetStaticCityInfo(string city)
     {
         if (city.Contains("成都"))
         {
@@ -518,12 +713,12 @@ public class TripPlannerAgent
             {
                 Attractions = new[]
                 {
-                    new { Name = "宽窄巷子", Address = "四川省成都市青羊区金河宾馆北侧", Longitude = 104.067923, Latitude = 30.66359, Description = "清代古街道，体验老成都生活", Category = "历史文化", TicketPrice = 0, ImageUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMGEyNjJmIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuNCkiIHN0cm9rZS13aWR0aD0iMSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5aWH6I2J6LSFPC90ZXh0Pjwvc3ZnPg==" },
-                    new { Name = "锦里古街", Address = "四川省成都市武侯区武侯祠大街231号", Longitude = 104.05429, Latitude = 30.64633, Description = "古蜀文化商业街，美食聚集地", Category = "历史文化", TicketPrice = 0, ImageUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWNiOTNjIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuNCkiIHN0cm9rZS13aWR0aD0iMSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5bCP5LiK5p2h5ryUPC90ZXh0Pjwvc3ZnPg==" },
-                    new { Name = "武侯祠", Address = "四川省成都市武侯区武侯祠大街231号", Longitude = 104.05498, Latitude = 30.64677, Description = "纪念诸葛亮的祠宇", Category = "历史文化", TicketPrice = 50, ImageUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMjJjYmNmIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuNCkiIHN0cm9rZS13aWR0aD0iMSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+54ix5b+D5aWHPC90ZXh0Pjwvc3ZnPg==" },
-                    new { Name = "杜甫草堂", Address = "四川省成都市青羊区青华路37号", Longitude = 104.03954, Latitude = 30.66028, Description = "唐代诗人杜甫的故居", Category = "历史文化", TicketPrice = 50, ImageUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMzZjNDI0Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuNCkiIHN0cm9rZS13aWR0aD0iMSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5bKt5LiJ6JCl6LW3PC90ZXh0Pjwvc3ZnPg==" },
-                    new { Name = "大熊猫基地", Address = "四川省成都市成华区外北熊猫大道1375号", Longitude = 104.1799, Latitude = 30.74644, Description = "世界著名的大熊猫保护研究基地", Category = "自然景观", TicketPrice = 55, ImageUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMWM4OWEwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuNCkiIHN0cm9rZS13aWR0aD0iMSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5aSn5bee5aWH5Z+65Z2hPC90ZXh0Pjwvc3ZnPg==" },
-                    new { Name = "都江堰", Address = "四川省成都市都江堰市公园路都江堰景区", Longitude = 103.61459, Latitude = 30.99758, Description = "世界文化遗产，古代水利工程", Category = "历史文化", TicketPrice = 80, ImageUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNTdjOGMwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtZmFtaWx5PSJBcmlhbCIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuNCkiIHN0cm9rZS13aWR0aD0iMSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5LmL5a6J5ryrPC90ZXh0Pjwvc3ZnPg==" }
+                    new { Name = "宽窄巷子", Address = "四川省成都市青羊区金河宾馆北侧", Longitude = 104.067923, Latitude = 30.66359, Description = "清代古街道，体验老成都生活", Category = "历史文化", TicketPrice = 0, ImageUrl = "" },
+                    new { Name = "锦里古街", Address = "四川省成都市武侯区武侯祠大街231号", Longitude = 104.05429, Latitude = 30.64633, Description = "古蜀文化商业街，美食聚集地", Category = "历史文化", TicketPrice = 0, ImageUrl = "" },
+                    new { Name = "武侯祠", Address = "四川省成都市武侯区武侯祠大街231号", Longitude = 104.05498, Latitude = 30.64677, Description = "纪念诸葛亮的祠宇", Category = "历史文化", TicketPrice = 50, ImageUrl = "" },
+                    new { Name = "杜甫草堂", Address = "四川省成都市青羊区青华路37号", Longitude = 104.03954, Latitude = 30.66028, Description = "唐代诗人杜甫的故居", Category = "历史文化", TicketPrice = 50, ImageUrl = "" },
+                    new { Name = "大熊猫基地", Address = "四川省成都市成华区外北熊猫大道1375号", Longitude = 104.1799, Latitude = 30.74644, Description = "世界著名的大熊猫保护研究基地", Category = "自然景观", TicketPrice = 55, ImageUrl = "" },
+                    new { Name = "都江堰", Address = "四川省成都市都江堰市公园路都江堰景区", Longitude = 103.61459, Latitude = 30.99758, Description = "世界文化遗产，古代水利工程", Category = "历史文化", TicketPrice = 80, ImageUrl = "" }
                 },
                 DayDescriptions = new[] { "市区文化之旅", "熊猫与自然之旅", "都江堰一日游" },
                 HotelName = "成都宽窄巷子美居酒店",
@@ -564,18 +759,44 @@ public class TripPlannerAgent
                 Suggestions = "重庆地势起伏大，建议穿舒适的鞋子。"
             };
         }
+        else if (city.Contains("达州"))
+        {
+            return new
+            {
+                Attractions = new[]
+                {
+                    new { Name = "真佛山", Address = "四川省达州市达川区福善镇", Longitude = 107.59, Latitude = 31.18, Description = "集佛、道、儒三教合一的宗教圣地，始建于清嘉庆年间", Category = "历史文化", TicketPrice = 30, ImageUrl = "" },
+                    new { Name = "莲花湖湿地公园", Address = "四川省达州市通川区", Longitude = 107.51, Latitude = 31.23, Description = "城市绿肺，自然风光优美", Category = "自然景观", TicketPrice = 0, ImageUrl = "" },
+                    new { Name = "达州博物馆", Address = "四川省达州市通川区", Longitude = 107.53, Latitude = 31.22, Description = "综合性地方博物馆，收藏文物涵盖达州史前文化、巴人文化等", Category = "历史文化", TicketPrice = 0, ImageUrl = "" },
+                    new { Name = "张爱萍故居", Address = "四川省达州市通川区罗江镇", Longitude = 107.45, Latitude = 31.28, Description = "开国上将张爱萍的故居，全国爱国主义教育示范基地", Category = "历史文化", TicketPrice = 0, ImageUrl = "" },
+                    new { Name = "龙潭河", Address = "四川省达州市万源市", Longitude = 108.02, Latitude = 32.03, Description = "省级风景名胜区，以漂流和自然风光闻名", Category = "自然景观", TicketPrice = 50, ImageUrl = "" },
+                    new { Name = "八台山", Address = "四川省达州市万源市", Longitude = 108.16, Latitude = 31.98, Description = "国家级自然遗产，有'川东峨眉'之称", Category = "自然景观", TicketPrice = 100, ImageUrl = "" }
+                },
+                DayDescriptions = new[] { "达州文化之旅", "自然风光之旅", "红色记忆之旅" },
+                HotelName = "达州凤凰国际大酒店",
+                HotelAddress = "达州市通川区凤凰大道",
+                HotelLng = 107.53,
+                HotelLat = 31.22,
+                HotelPriceRange = "200-400元",
+                HotelCost = 300,
+                Breakfast = "达州特色早餐",
+                Lunch = "川菜",
+                Dinner = "达州美食",
+                Suggestions = "达州是革命老区，建议参观红色景点；夏季注意防暑降温。"
+            };
+        }
         else
         {
             return new
             {
                 Attractions = new[]
                 {
-                    new { Name = "市中心广场", Address = $"{city}市中心", Longitude = 116.40, Latitude = 39.90, Description = $"{city}城市中心地标", Category = "现代景观", TicketPrice = 0, ImageUrl = "" },
-                    new { Name = "历史博物馆", Address = $"{city}历史文化区", Longitude = 116.41, Latitude = 39.91, Description = $"{city}历史文化展示", Category = "历史文化", TicketPrice = 30, ImageUrl = "" },
-                    new { Name = "湿地公园", Address = $"{city}郊区", Longitude = 116.39, Latitude = 39.89, Description = "城市绿肺，自然风光", Category = "自然景观", TicketPrice = 20, ImageUrl = "" },
-                    new { Name = "美食街", Address = $"{city}商业街", Longitude = 116.42, Latitude = 39.92, Description = $"{city}特色美食聚集地", Category = "美食", TicketPrice = 0, ImageUrl = "" },
-                    new { Name = "文化艺术中心", Address = $"{city}新区", Longitude = 116.43, Latitude = 39.88, Description = "现代文化艺术场馆", Category = "艺术", TicketPrice = 50, ImageUrl = "" },
-                    new { Name = "古城墙", Address = $"{city}老城区", Longitude = 116.38, Latitude = 39.93, Description = "历史古城墙遗址", Category = "历史文化", TicketPrice = 40, ImageUrl = "" }
+                    new { Name = $"{city}广场", Address = $"{city}市中心", Longitude = 116.40, Latitude = 39.90, Description = $"{city}城市中心地标", Category = "现代景观", TicketPrice = 0, ImageUrl = "" },
+                    new { Name = $"{city}博物馆", Address = $"{city}历史文化区", Longitude = 116.41, Latitude = 39.91, Description = $"{city}历史文化展示", Category = "历史文化", TicketPrice = 30, ImageUrl = "" },
+                    new { Name = $"{city}公园", Address = $"{city}郊区", Longitude = 116.39, Latitude = 39.89, Description = "城市绿肺，自然风光", Category = "自然景观", TicketPrice = 20, ImageUrl = "" },
+                    new { Name = $"{city}美食街", Address = $"{city}商业街", Longitude = 116.42, Latitude = 39.92, Description = $"{city}特色美食聚集地", Category = "美食", TicketPrice = 0, ImageUrl = "" },
+                    new { Name = $"{city}文化中心", Address = $"{city}新区", Longitude = 116.43, Latitude = 39.88, Description = "现代文化艺术场馆", Category = "艺术", TicketPrice = 50, ImageUrl = "" },
+                    new { Name = $"{city}古城墙", Address = $"{city}老城区", Longitude = 116.38, Latitude = 39.93, Description = "历史古城墙遗址", Category = "历史文化", TicketPrice = 40, ImageUrl = "" }
                 },
                 DayDescriptions = new[] { "城市地标之旅", "文化探索之旅", "自然休闲之旅" },
                 HotelName = $"{city}市中心酒店",
@@ -590,6 +811,62 @@ public class TripPlannerAgent
                 Suggestions = $"欢迎来到{city}旅游，祝您旅途愉快。"
             };
         }
+    }
+
+    private string GetCategoryFromType(string type)
+    {
+        if (string.IsNullOrEmpty(type)) return "其他";
+        if (type.Contains("文化") || type.Contains("历史")) return "历史文化";
+        if (type.Contains("公园") || type.Contains("自然") || type.Contains("风景")) return "自然景观";
+        if (type.Contains("美食") || type.Contains("餐饮")) return "美食";
+        if (type.Contains("购物") || type.Contains("商业")) return "购物";
+        if (type.Contains("艺术") || type.Contains("博物馆")) return "艺术";
+        return "现代景观";
+    }
+
+    private List<string> GetFamousAttractionsForCity(string city)
+    {
+        var famousAttractions = new Dictionary<string, List<string>>
+        {
+            { "南充", new List<string> { "阆中古城", "朱德故里", "升钟湖", "凌云山", "嘉陵江第一曲流" } },
+            { "成都", new List<string> { "宽窄巷子", "锦里古街", "武侯祠", "杜甫草堂", "大熊猫基地", "都江堰", "青城山" } },
+            { "重庆", new List<string> { "洪崖洞", "解放碑", "长江索道", "磁器口古镇", "武隆天生三桥", "李子坝轻轨站" } },
+            { "达州", new List<string> { "真佛山", "莲花湖湿地公园", "达州博物馆", "张爱萍故居", "龙潭河", "八台山" } },
+            { "绵阳", new List<string> { "越王楼", "富乐山", "七曲山大庙", "窦圌山", "药王谷" } },
+            { "德阳", new List<string> { "三星堆", "什邡蓥华山", "德阳文庙" } },
+            { "广元", new List<string> { "剑门关", "昭化古城", "皇泽寺", "千佛崖" } },
+            { "遂宁", new List<string> { "灵泉寺", "广德寺", "中国死海" } },
+            { "内江", new List<string> { "大千园", "圣水寺", "隆昌石牌坊" } },
+            { "乐山", new List<string> { "乐山大佛", "峨眉山", "东方佛都" } },
+            { "资阳", new List<string> { "安岳石刻", "陈毅故里" } },
+            { "宜宾", new List<string> { "蜀南竹海", "五粮液景区", "兴文石海" } },
+            { "泸州", new List<string> { "泸州老窖景区", "太平古镇", "黄荆老林" } },
+            { "自贡", new List<string> { "自贡恐龙博物馆", "盐业历史博物馆", "荣县大佛" } },
+            { "攀枝花", new List<string> { "二滩国家森林公园", "格萨拉生态旅游区" } },
+            { "眉山", new List<string> { "三苏祠", "瓦屋山", "柳江古镇" } },
+            { "广安", new List<string> { "邓小平故里", "华蓥山", "宝箴塞" } },
+            { "巴中", new List<string> { "光雾山", "诺水河", "恩阳古镇" } },
+            { "雅安", new List<string> { "碧峰峡", "蒙顶山", "上里古镇" } },
+            { "凉山", new List<string> { "邛海", "泸沽湖", "螺髻山" } },
+            { "甘孜", new List<string> { "稻城亚丁", "海螺沟", "四姑娘山" } },
+            { "阿坝", new List<string> { "九寨沟", "黄龙", "青城山", "都江堰" } }
+        };
+
+        foreach (var kvp in famousAttractions)
+        {
+            if (city.Contains(kvp.Key))
+            {
+                return kvp.Value;
+            }
+        }
+
+        return new List<string>();
+    }
+
+    private int GetRandomTicketPrice()
+    {
+        var random = new Random();
+        return random.Next(0, 150);
     }
 
     private TripPlan CreateFallbackPlan(TripRequest request)

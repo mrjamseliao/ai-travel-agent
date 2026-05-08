@@ -306,13 +306,8 @@
                       </template>
 
                       <!-- 景点图片 -->
-                      <div class="attraction-image-wrapper">
-                        <img
-                          :src="item.image_url || getAttractionImage(item.name, index)"
-                          :alt="item.name"
-                          class="attraction-image"
-                          @error="handleImageError"
-                        />
+                      <div class="attraction-image-wrapper" :style="{ backgroundColor: getAttractionBgColor(item.name) }">
+                        <div class="attraction-emoji">{{ getAttractionIcon(item.name) }}</div>
                         <div class="attraction-badge">
                           <span class="badge-number">{{ index + 1 }}</span>
                         </div>
@@ -1819,22 +1814,68 @@ const getAttractionImage = (name: string, _index: number): string => {
   if (tripPlan.value) {
     for (const day of tripPlan.value.days) {
       const attraction = day.attractions.find((a: any) => a.name === name)
-      if (attraction && attraction.image_url) {
+      if (attraction && attraction.image_url && attraction.image_url.trim()) {
         return attraction.image_url
       }
     }
   }
 
-  // 返回一个统一的深色占位图
-  const bg = '#1a262f'
-  const textColor = 'rgba(255,255,255,0.4)'
+  // 返回一个简单的纯色背景SVG图片，不使用emoji
+  const colors: Record<string, string> = {
+    '宽窄巷子': '#2c3e50',
+    '锦里古街': '#8b4513',
+    '武侯祠': '#1e3a5f',
+    '杜甫草堂': '#2d5016',
+    '大熊猫基地': '#1a1a2e',
+    '都江堰': '#1e3d5f',
+    '洪崖洞': '#2c1810',
+    '解放碑': '#1a1a2e',
+    '长江索道': '#0e4d64',
+    '磁器口古镇': '#5c4033',
+    '武隆天生三桥': '#1b2d37',
+    '李子坝轻轨站': '#2d3436'
+  }
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">
-    <rect width="400" height="300" fill="${bg}"/>
-    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="24" font-weight="bold" fill="${textColor}">${name}</text>
-  </svg>`
+  const bgColor = colors[name] || '#1a262f'
+  
+  // 创建一个简单的纯色背景SVG
+  return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='${bgColor}'/%3E%3C/svg%3E`
+}
 
-  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`
+const getAttractionBgColor = (name: string): string => {
+  const colors: Record<string, string> = {
+    '宽窄巷子': '#2c3e50',
+    '锦里古街': '#8b4513',
+    '武侯祠': '#1e3a5f',
+    '杜甫草堂': '#2d5016',
+    '大熊猫基地': '#1a1a2e',
+    '都江堰': '#1e3d5f',
+    '洪崖洞': '#2c1810',
+    '解放碑': '#1a1a2e',
+    '长江索道': '#0e4d64',
+    '磁器口古镇': '#5c4033',
+    '武隆天生三桥': '#1b2d37',
+    '李子坝轻轨站': '#2d3436'
+  }
+  return colors[name] || '#1a262f'
+}
+
+const getAttractionIcon = (name: string): string => {
+  const icons: Record<string, string> = {
+    '宽窄巷子': '🏮',
+    '锦里古街': '🏯',
+    '武侯祠': '🏛️',
+    '杜甫草堂': '🏡',
+    '大熊猫基地': '🐼',
+    '都江堰': '🌊',
+    '洪崖洞': '🏮',
+    '解放碑': '🏛️',
+    '长江索道': '🚠',
+    '磁器口古镇': '🏯',
+    '武隆天生三桥': '🌉',
+    '李子坝轻轨站': '🚇'
+  }
+  return icons[name] || '📍'
 }
 
 // 图片加载失败时的处理
@@ -3112,6 +3153,14 @@ const drawRoutes = async (AMap: any, attractions: any[]): Promise<any[]> => {
   margin-bottom: 12px;
   border-radius: 12px;
   overflow: hidden;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attraction-emoji {
+  font-size: 5rem;
 }
 
 .attraction-image {

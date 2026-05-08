@@ -68,7 +68,6 @@ D:\dev\ai-travel-agent\AgentManager\obj\Debug\net10.0\staticwebassets.build.json
 D:\dev\ai-travel-agent\AgentManager\obj\Debug\net10.0\staticwebassets.development.json
 D:\dev\ai-travel-agent\AgentManager\obj\Debug\net10.0\staticwebassets.build.endpoints.json
 D:\dev\ai-travel-agent\AgentManager\obj\Debug\net10.0\swae.build.ex.cache
-D:\dev\ai-travel-agent\AgentManager\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt
 D:\dev\ai-travel-agent\AgentManager\obj\Debug\net10.0\AiTravel.709D5BEE.Up2Date
 D:\dev\ai-travel-agent\AgentManager\obj\Debug\net10.0\AiTravelAgent.dll
 D:\dev\ai-travel-agent\AgentManager\obj\Debug\net10.0\refint\AiTravelAgent.dll
