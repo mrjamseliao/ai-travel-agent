@@ -11,25 +11,17 @@
             <!-- <p class="landing-hero-badge text-center">{{ t('home.heroBadge') }}</p> -->
             <div class="title-brand">
               <h1 class="presentation-title">
-                SoloTrip
+                SheepTrip
               </h1>
             </div>
             <h2 class="presentation-subtitle text-center">{{ t('home.titleLine') }}</h2>
           </div>
         </div>
-        <!-- <div class="moving-clouds" :style="movingCloudsStyle"></div>
-        <div class="fog-low" :style="fogLowStyle">
-          <img src="https://demos.creative-tim.com/paper-kit-2/assets/img/clouds.png" alt="fog" />
-        </div>
-        <div class="fog-low right" :style="fogLowRightStyle">
-          <img src="https://demos.creative-tim.com/paper-kit-2/assets/img/clouds.png" alt="fog" />
-        </div>
-        <div class="hero-bottom-shade" :style="heroBottomShadeStyle"></div> -->
       </div>
     </div>
 
     <section ref="formRef" class="form-section">
-      <div class="form-panel" :style="[formRevealStyle, { minHeight: panelHeight === 'auto' ? 'auto' : panelHeight + 'px' }]" ref="panelRef">
+      <div class="form-panel" :class="{ active: loading }" :style="[formRevealStyle, { minHeight: panelHeight === 'auto' ? 'auto' : panelHeight + 'px' }]" ref="panelRef">
         <a-form v-show="!loading" :model="formData" layout="vertical" @finish="handleSubmit">
           <div class="step">
             <div class="step-head">
@@ -345,7 +337,7 @@ const heroProgress = computed(() => Math.min(scrollY.value / 320, 1))
 const toneProgress = computed(() => Math.min(Math.max((scrollY.value - 20) / 360, 0), 1))
 const pageHeaderStyle = computed(() => ({
   backgroundImage: "url('http://demos.creative-tim.com/paper-kit-2/assets/img/antoine-barres.jpg')",
-  backgroundPosition: `center ${Math.max(-scrollY.value * 0.08, -120)}px`,
+  backgroundPosition: `center ${Math.max(-scrollY.value * 0.08, 120)}px`,
   backgroundSize: 'cover',
   backgroundRepeat: 'no-repeat',
 }))
@@ -356,13 +348,10 @@ const heroContentStyle = computed(() => ({
 const lowerShadeStyle = computed(() => ({
   opacity: `${(0.34 + toneProgress.value * 0.52) * (fogEnabled.value ? 1 : 0)}`,
 }))
-const formRevealStyle = computed(() => {
-  const progress = Math.min(Math.max((scrollY.value - 80) / 340, 0), 1)
-  return {
-    opacity: `${0.2 + progress * 0.8}`,
-    transform: `translate3d(0, ${(1 - progress) * 56}px, 0)`,
-  }
-})
+const formRevealStyle = computed(() => ({
+  opacity: '1',
+  transform: 'translate3d(0, 0, 0)',
+}))
 
 const togglePreference = (value: string) => {
   const index = formData.preferences.indexOf(value)
@@ -518,11 +507,12 @@ const handleSubmit = async () => {
 <style scoped>
 .landing-page {
   min-height: 100vh;
+  max-height: 100vh;
   background: linear-gradient(180deg, #0d171d 0%, #142430 58%, #0f1a22 100%);
   color: #ecf3fa;
   position: relative;
   isolation: isolate;
-  overflow-x: hidden; /* 防止水平溢出导致的出界感 */
+  overflow: hidden; /* 防止水平和垂直溢出 */
 }
 
 .lower-shade {
@@ -545,31 +535,33 @@ const handleSubmit = async () => {
 }
 
 .landing-header {
-  /* 确保 hero 区域占满全屏高度，背景图不重复 */
-  height: 100vh;
-  min-height: 100vh;
+  /* 调整 hero 区域高度，让背景图片整页显示 */
+  height: 30vh;
+  min-height: 470px;
+  max-height: 100vh;
   position: relative;
   display: block;
   background-size: cover !important;
   background-repeat: no-repeat !important;
   background-position: center center !important;
-  overflow: hidden;
+  background-attachment: fixed;
+  overflow: visible;
   z-index: 1;
 }
 
 .history-section {
   position: relative;
   z-index: 1;
-  padding: 0 24px 72px;
+  padding: 0px 10px 150px;
 }
 
 .history-panel {
-  max-width: 1120px;
+  max-width: 1000px;
   margin: 0 auto;
   background: rgba(10, 20, 28, 0.74);
   border: 1px solid rgba(203, 227, 255, 0.12);
-  border-radius: 28px;
-  padding: 24px;
+  border-radius: 22px;
+  padding: 5px;
   box-shadow: 0 28px 60px rgba(0, 0, 0, 0.24);
   backdrop-filter: blur(14px);
 }
@@ -579,7 +571,7 @@ const handleSubmit = async () => {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 10px;
 }
 
 .history-eyebrow {
@@ -682,18 +674,18 @@ const handleSubmit = async () => {
 
 .landing-header .content-center {
   margin-top: 0 !important;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  /* 内容垂直居中，确保在 .filter::after 霁罩和 hero-bottom-shade 之上 */
+  padding-top: 30px;
   position: relative;
   z-index: 3;
 }
 
 .landing-header .content-center .container {
-  transform: translate3d(0, 45px, 0);
+  transform: none;
 }
 
 /* moving-clouds: 依赖 global.css 的定位 (bottom:0, width:250em, cloudLoop 80s) */
@@ -753,8 +745,8 @@ const handleSubmit = async () => {
 
 
 .form-section {
-  margin-top: -112px;
-  padding: 0 20px 86px;
+  margin-top: -220px;
+  padding: 0 20px 40px;
   position: relative;
   z-index: 3;
 }
@@ -762,13 +754,19 @@ const handleSubmit = async () => {
 .form-panel {
   max-width: 1000px;
   margin: 0 auto;
-  border: 1.2px solid rgba(236, 243, 250, 0.2);
+  border: 1.2px solid rgba(236, 243, 250, 0.3);
   border-radius: 22px;
-  background: rgba(12, 23, 32, 0.56);
+  background: rgba(12, 23, 32, 0.95);
   backdrop-filter: blur(18px);
   box-shadow: 0 24px 80px rgba(4, 11, 18, 0.52);
   padding: 20px;
   transition: 0.25s;
+}
+
+.form-panel.active {
+  background: rgba(12, 23, 32, 0.95);
+  border-color: rgba(236, 243, 250, 0.4);
+  box-shadow: 0 24px 80px rgba(4, 11, 18, 0.6);
 }
 
 .step {

@@ -2046,12 +2046,12 @@ const buildExportHTML = (mapDataUrl: string = ''): string => {
   }
 
   // 底部二维码 — 项目开源地址
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent('https://github.com/1sdv/TripStar')}`
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent('https://github.com/1sdv/SheepTrip')}`
   const footerHTML = `
     <div style="text-align:center;padding:24px 16px 16px;border-top:1px solid #e8e8e8;margin-top:8px;">
       <img src="${qrUrl}" style="width:120px;height:120px;margin-bottom:10px;" crossorigin="anonymous" />
-      <div style="font-size:13px;color:#667eea;font-weight:600;margin-bottom:4px;">TripStar</div>
-      <div style="font-size:11px;color:#aaa;">https://github.com/1sdv/TripStar</div>
+      <div style="font-size:13px;color:#667eea;font-weight:600;margin-bottom:4px;">SheepTrip</div>
+      <div style="font-size:11px;color:#aaa;">https://github.com/1sdv/SheepTrip</div>
       <div style="font-size:11px;color:#bbb;margin-top:6px;">${t('result.export.footer')}</div>
     </div>`
 
@@ -2351,13 +2351,13 @@ const escapeHtml = (value: unknown): string => {
 
 const buildMarkerContent = (dayNo: number, stopNo: number): string => {
   return `
-    <div class="tripstar-map-marker">
-      <span class="tripstar-map-marker__core" aria-hidden="true">
+    <div class="SheepTrip-map-marker">
+      <span class="SheepTrip-map-marker__core" aria-hidden="true">
         <svg fill="#ffffff" width="30px" height="30px" viewBox="0 0 256 256" id="Flat" xmlns="http://www.w3.org/2000/svg">
           <path d="M231.4248,109.2041,169.36426,86.63574,146.7959,24.57422a19.99984,19.99984,0,0,0-37.5918.001L86.63574,86.63574,24.57422,109.2041a19.99984,19.99984,0,0,0,.001,37.5918l62.06054,22.56836,22.56836,62.06152a19.99984,19.99984,0,0,0,37.5918-.001l22.56836-62.06054,62.06152-22.56836a19.99984,19.99984,0,0,0-.001-37.5918Zm-72.01562,38.24219a19.95591,19.95591,0,0,0-11.96289,11.96289l.001-.001L128,212.88672l-19.44629-53.47754A19.95279,19.95279,0,0,0,96.5918,147.44727L43.11328,128l53.47754-19.44629A19.95279,19.95279,0,0,0,108.55273,96.5918L128,43.11328l19.44629,53.47754a19.95279,19.95279,0,0,0,11.96191,11.96191L212.88672,128Z"/>
         </svg>
       </span>
-      <span class="tripstar-map-marker__index" aria-hidden="true">${dayNo}-${stopNo}</span>
+      <span class="SheepTrip-map-marker__index" aria-hidden="true">${dayNo}-${stopNo}</span>
     </div>
   `
 }
@@ -2372,11 +2372,11 @@ const buildInfoWindowContent = (attraction: any): string => {
   const minuteUnit = escapeHtml(t('result.minuteUnit'))
 
   return `
-    <div class="tripstar-map-tooltip tripstar-map-tooltip--plain">
-      <p class="tripstar-map-tooltip__line tripstar-map-tooltip__line--title">${name}</p>
-      <p class="tripstar-map-tooltip__line">${dayAttractionText}</p>
-      <p class="tripstar-map-tooltip__line">${address}</p>
-      <p class="tripstar-map-tooltip__line">${visitDuration}${minuteUnit}</p>
+    <div class="SheepTrip-map-tooltip SheepTrip-map-tooltip--plain">
+      <p class="SheepTrip-map-tooltip__line SheepTrip-map-tooltip__line--title">${name}</p>
+      <p class="SheepTrip-map-tooltip__line">${dayAttractionText}</p>
+      <p class="SheepTrip-map-tooltip__line">${address}</p>
+      <p class="SheepTrip-map-tooltip__line">${visitDuration}${minuteUnit}</p>
     </div>
   `
 }
@@ -4583,15 +4583,15 @@ const drawRoutes = async (AMap: any, attractions: any[]): Promise<any[]> => {
 
 <style>
 :root {
-  --tripstar-map-accent: #d76e42;
-  --tripstar-map-accent-strong: #a14625;
-  --tripstar-map-surface: rgba(17, 29, 38, 0.96);
-  --tripstar-map-border: rgba(215, 110, 66, 0.35);
-  --tripstar-map-text-main: #f6fbff;
-  --tripstar-map-text-sub: rgba(240, 246, 252, 0.72);
+  --SheepTrip-map-accent: #d76e42;
+  --SheepTrip-map-accent-strong: #a14625;
+  --SheepTrip-map-surface: rgba(17, 29, 38, 0.96);
+  --SheepTrip-map-border: rgba(215, 110, 66, 0.35);
+  --SheepTrip-map-text-main: #f6fbff;
+  --SheepTrip-map-text-sub: rgba(240, 246, 252, 0.72);
 }
 
-.tripstar-map-marker {
+.SheepTrip-map-marker {
   position: relative;
   width: 34px;
   height: 34px;
@@ -4601,7 +4601,7 @@ const drawRoutes = async (AMap: any, attractions: any[]): Promise<any[]> => {
   cursor: pointer;
 }
 
-.tripstar-map-marker__core {
+.SheepTrip-map-marker__core {
   position: relative;
   z-index: 1;
   width: 20px;
@@ -4615,7 +4615,7 @@ const drawRoutes = async (AMap: any, attractions: any[]): Promise<any[]> => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45); */
 }
 
-.tripstar-map-marker__icon {
+.SheepTrip-map-marker__icon {
   width: 12px;
   height: 12px;
   stroke: #ffffff;
@@ -4625,7 +4625,7 @@ const drawRoutes = async (AMap: any, attractions: any[]): Promise<any[]> => {
   fill: none;
 }
 
-.tripstar-map-marker__index {
+.SheepTrip-map-marker__index {
   position: absolute;
   top: calc(100% + 1px);
   left: 50%;
@@ -4639,17 +4639,17 @@ const drawRoutes = async (AMap: any, attractions: any[]): Promise<any[]> => {
   pointer-events: none;
 }
 
-.tripstar-map-tooltip {
+.SheepTrip-map-tooltip {
   max-width: min(320px, calc(100vw - 40px));
   background: transparent;
   border: none;
   box-shadow: none;
   padding: 0;
-  color: var(--tripstar-map-text-main);
+  color: var(--SheepTrip-map-text-main);
   pointer-events: none;
 }
 
-.tripstar-map-tooltip__line {
+.SheepTrip-map-tooltip__line {
   margin: 0;
   font-size: 12px;
   line-height: 1.45;
@@ -4659,11 +4659,11 @@ const drawRoutes = async (AMap: any, attractions: any[]): Promise<any[]> => {
   white-space: nowrap;
 }
 
-.tripstar-map-tooltip__line + .tripstar-map-tooltip__line {
+.SheepTrip-map-tooltip__line + .SheepTrip-map-tooltip__line {
   margin-top: 2px;
 }
 
-.tripstar-map-tooltip__line--title {
+.SheepTrip-map-tooltip__line--title {
   font-size: 15px;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
   font-weight: 700;

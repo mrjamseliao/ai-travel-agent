@@ -1,16 +1,15 @@
 {
   "app": {
-    "title": "旅途星辰",
-    "brand": "旅途星辰",
-    "subBrand": "TripStar · AI 旅行引擎",
+    "title": "边牧旅行：SheepTrip",
+    "brand": "边牧旅行",
+    "subBrand": "SheepTrip · AI 旅行引擎",
     "badge": "AI 文旅智能体",
     "language": {
       "label": "语言",
       "zh": "中文",
-      "ja": "日本語",
       "en": "English"
     },
-    "footerBrand": "旅途星辰",
+    "footerBrand": "边牧旅行",
     "footerCopy": "{year} All rights reserved.",
     "footerTech": "Powered by HelloAgents + 高德 MCP"
   },
@@ -221,7 +220,7 @@
     "chat": {
       "toggle": "AI 在线",
       "title": "行程智能问答",
-      "welcome": "您好！我是旅途星辰 AI，可以问我关于行程的任何问题，例如：",
+      "welcome": "您好！我是边牧旅行 AI，可以问我关于行程的任何问题，例如：",
       "quickPriceLabel": "票价查询",
       "quickSuitabilityLabel": "适合老人？",
       "quickMealLabel": "餐饮价格",
@@ -275,7 +274,7 @@
     },
     "export": {
       "filePrefix": "旅行计划",
-      "footer": "由 旅途星辰 TripStar · AI 旅行引擎 生成",
+      "footer": "由 SheepTrip · AI 旅行引擎 生成",
       "title": "{city} 旅行计划",
       "subtitle": "{start} 至 {end} · {days} 天行程",
       "perNight": "/晚",

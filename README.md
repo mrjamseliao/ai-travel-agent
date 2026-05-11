@@ -241,7 +241,7 @@ npm run dev
 ## 目录结构与关键代码导读
 
 ```text
-TripStar/
+SheepTrip/
 ├── backend/                       # Python FastAPI 后端
 │   ├── app/
 │   │   ├── api/routes/            # 核心路由 (trip.py, poi.py, chat.py)
@@ -271,7 +271,6 @@ TripStar/
 
 <img width="1600" height="799" alt="image" src="https://github.com/user-attachments/assets/20221707-c115-4da7-aa49-80eec772bc33" />
 <img width="1598" height="801" alt="image" src="https://github.com/user-attachments/assets/1b4b745e-98f1-4868-a6dd-d32909077713" />
-<img width="1649" height="805" alt="image" src="https://github.com/user-attachments/assets/fe775f15-7a1e-467e-a1c4-f97361e13d95" />
 <img width="1599" height="823" alt="image" src="https://github.com/user-attachments/assets/a262a33d-4dbc-4f5a-b392-9b2d0ab66a31" />
 <img width="1599" height="741" alt="image" src="https://github.com/user-attachments/assets/2c236df0-6ad2-44a0-8976-93d84ea14b1f" />
 
@@ -295,11 +294,11 @@ TripStar/
 
 <a href="">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=1sdv/TripStar&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=1sdv/TripStar&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=1sdv/TripStar&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=1sdv/SheepTrip&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=1sdv/SheepTrip&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=1sdv/SheepTrip&type=date&legend=top-left" />
  </picture>
 </a>
 
 ## 🙏 致谢
-感谢 [linuxdo](https://linux.do/) 社区的交流、分享与反馈，让 TripStar 的迭代更高效。
+感谢 [linuxdo](https://linux.do/) 社区的交流、分享与反馈，让 SheepTrip 的迭代更高效。

@@ -13,9 +13,9 @@ import { i18n } from '@/i18n'
 
 const ENV_API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 const ENV_AMAP_WEB_JS_KEY = import.meta.env.VITE_AMAP_WEB_JS_KEY ?? ''
-const RUNTIME_API_BASE_STORAGE_KEY = 'tripstar.runtime.api_base_url'
-const RUNTIME_AMAP_WEB_JS_KEY_STORAGE_KEY = 'tripstar.runtime.amap_web_js_key'
-const RUNTIME_GOOGLE_MAPS_API_KEY_STORAGE_KEY = 'tripstar.runtime.google_maps_api_key'
+const RUNTIME_API_BASE_STORAGE_KEY = 'SheepTrip.runtime.api_base_url'
+const RUNTIME_AMAP_WEB_JS_KEY_STORAGE_KEY = 'SheepTrip.runtime.amap_web_js_key'
+const RUNTIME_GOOGLE_MAPS_API_KEY_STORAGE_KEY = 'SheepTrip.runtime.google_maps_api_key'
 const DEFAULT_RUNTIME_BACKEND_SETTINGS: BackendRuntimeSettings = {
   vite_amap_web_key: '0bffdc38033b44959a9af8957bda9f47',
   vite_amap_web_js_key: 'ebe35234350890376a4faa7f595ee7e6',
@@ -27,7 +27,7 @@ const DEFAULT_RUNTIME_BACKEND_SETTINGS: BackendRuntimeSettings = {
   openai_model: 'gpt-4',
 }
 
-export const RUNTIME_SETTINGS_UPDATED_EVENT = 'tripstar:runtime-settings-updated'
+export const RUNTIME_SETTINGS_UPDATED_EVENT = 'SheepTrip:runtime-settings-updated'
 const t = i18n.global.t
 
 const normalizeBaseUrl = (value: string | null | undefined): string => {

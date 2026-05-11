@@ -1,4 +1,4 @@
-# TripStar - AI Travel Agent
+# SheepTrip - AI Travel Agent
 
 
 > **A Multi-Agent Collaborative Travel Planning Platform Based on the HelloAgents Framework**
@@ -216,7 +216,7 @@ npm run dev
 ## Directory Structure
 
 ```text
-TripStar/
+SheepTrip/
 ├── backend/                       # Python FastAPI Backend
 │   ├── app/
 │   │   ├── api/routes/            # Core routing (trip.py, poi.py, chat.py)
@@ -261,13 +261,13 @@ TripStar/
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=1sdv%2FTripStar&type=date&logscale=&legend=top-left">
+<a href="https://www.star-history.com/?repos=1sdv%2FSheepTrip&type=date&logscale=&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=1sdv/TripStar&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=1sdv/TripStar&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=1sdv/TripStar&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=1sdv/SheepTrip&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=1sdv/SheepTrip&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=1sdv/SheepTrip&type=date&legend=top-left" />
  </picture>
 </a>
 
 ## 🙏 Acknowledgements
-Thanks to the [linux.do](https://linux.do/) community for communication and feedback, making TripStar iterate more efficiently.
+Thanks to the [linux.do](https://linux.do/) community for communication and feedback, making SheepTrip iterate more efficiently.
