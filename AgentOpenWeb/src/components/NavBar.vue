@@ -38,7 +38,6 @@
           <li class="nav-item landing-lang-item">
             <a-select v-model:value="locale" class="lang-select-nav" size="small" :aria-label="t('app.language.label')">
               <a-select-option value="zh-CN">{{ t('app.language.zh') }}</a-select-option>
-              <a-select-option value="ja-JP">{{ t('app.language.ja') }}</a-select-option>
               <a-select-option value="en-US">{{ t('app.language.en') }}</a-select-option>
             </a-select>
           </li>
