@@ -2,7 +2,7 @@
   <div class="admin-container">
     <div class="admin-sidebar">
       <div class="sidebar-header">
-        <h2>Solo旅行管理后台</h2>
+        <h2>边牧旅行管理后台</h2>
       </div>
       <nav class="sidebar-nav">
         <button 
@@ -23,6 +23,9 @@
         <div class="header-actions">
           <button class="btn-refresh" @click="refreshData">
             🔄 刷新
+          </button>
+          <button class="btn-refresh" @click="goToHome">
+            🏠 返回首页
           </button>
         </div>
       </div>
@@ -216,9 +219,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import type { AdminSettings, HealthCheckResponse, TripHistoryItem } from '@/types'
 import { getAdminSettings, updateAdminSettings, getAdminHealthDetails, getTripHistory } from '@/services/api'
 
+const router = useRouter()
 const activeTab = ref('settings')
 const settings = ref<AdminSettings>({
   appName: '',
@@ -365,6 +370,10 @@ const resetSettings = () => {
 
 const viewTrip = (planId: string) => {
   window.open(`/result/${planId}`, '_blank')
+}
+
+const goToHome = () => {
+  router.push('/')
 }
 
 const deleteTrip = (planId: string) => {
