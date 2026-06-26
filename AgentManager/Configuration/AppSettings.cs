@@ -19,14 +19,27 @@ public class AppSettings
 
     public string XhsCookie { get; set; } = "";
 
-    public string OpenAiApiKey { get; set; } = "ark-b66cba50-0a60-4e6c-a683-19ca4b194e46-360df"; // 豆包的OpenAI API Key 豆包Endpoint ID："model": "ep-20260507113644-njsp9"
+    public string OpenAiApiKey { get; set; } = "ark-b66cba50-0a60-4e6c-a683-19ca4b194e46-360df";
     public string OpenAiBaseUrl { get; set; } = "https://api.openai.com/v1";
     public string OpenAiModel { get; set; } = "gpt-4";
 
     public string LogLevel { get; set; } = "INFO";
 
+    public string DbProvider { get; set; } = "pgsql";
+    public string DbType { get; set; } = "pgsql";
+    public string DbHost { get; set; } = "localhost";
+    public int DbPort { get; set; } = 5432;
+    public string DbName { get; set; } = "ai_travel_agent";
+    public string DbAccount { get; set; } = "postgres";
+    public string DbPassword { get; set; } = "";
+
     public string[] GetCorsOriginsList()
     {
         return CorsOrigins.Split(',').Select(o => o.Trim()).ToArray();
+    }
+
+    public string GetConnectionString()
+    {
+        return $"Host={DbHost};Port={DbPort};Database={DbName};Username={DbAccount};Password={DbPassword};SSL Mode=Require;Trust Server Certificate=true;Encoding=UTF8";
     }
 }

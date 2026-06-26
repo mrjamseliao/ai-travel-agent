@@ -3,6 +3,11 @@ import type {
   AdminSettings,
   BackendRuntimeSettings,
   HealthCheckResponse,
+  KnowledgeBaseItem,
+  KnowledgeBaseRequest,
+  KnowledgeBaseSearchRequest,
+  KnowledgeBaseQARequest,
+  KnowledgeBaseQAResponse,
   RuntimeSettings,
   TripFormData,
   TripHistoryItem,
@@ -137,9 +142,9 @@ const emitRuntimeSettingsUpdated = () => {
 }
 
 const apiClient = axios.create({
-  timeout: 0, // 无超时限制，等待后端返回结果
+  timeout: 0,
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json;charset=utf-8'
   }
 })
 
@@ -281,6 +286,26 @@ export async function getTripHistory(limit = 8): Promise<TripHistoryItem[]> {
   }
 }
 
+export async function deleteTripHistory(id: string): Promise<{ success: boolean }> {
+  try {
+    const response = await apiClient.delete(`/api/trip/history/${id}`)
+    return response.data || { success: false }
+  } catch (error: any) {
+    console.error('删除旅行计划失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '删除计划失败')
+  }
+}
+
+export async function getTripHistoryById(id: string): Promise<{ success: boolean; data?: any }> {
+  try {
+    const response = await apiClient.get(`/api/trip/history/${id}`)
+    return response.data
+  } catch (error: any) {
+    console.error('获取旅行计划详情失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '获取计划详情失败')
+  }
+}
+
 /**
  * 生成旅行计划（兼容旧接口，内部使用轮询）
  */
@@ -393,3 +418,173 @@ export async function getAdminHealthDetails(): Promise<HealthCheckResponse> {
 
 export default apiClient
 
+export async function getKnowledgeBaseList(): Promise<KnowledgeBaseItem[]> {
+  try {
+    const response = await apiClient.get('/api/knowledge')
+    return Array.isArray(response.data?.data) ? response.data.data : []
+  } catch (error: any) {
+    console.error('获取知识库列表失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '获取知识库列表失败')
+  }
+}
+
+export async function getKnowledgeBaseItem(id: string): Promise<KnowledgeBaseItem> {
+  try {
+    const response = await apiClient.get(`/api/knowledge/${id}`)
+    return response.data?.data || {}
+  } catch (error: any) {
+    console.error('获取知识库条目失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '获取知识库条目失败')
+  }
+}
+
+export async function searchKnowledgeBase(request: KnowledgeBaseSearchRequest): Promise<KnowledgeBaseItem[]> {
+  try {
+    const response = await apiClient.get('/api/knowledge/search', { params: request })
+    return Array.isArray(response.data?.data) ? response.data.data : []
+  } catch (error: any) {
+    console.error('搜索知识库失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '搜索知识库失败')
+  }
+}
+
+export async function createKnowledgeBase(request: KnowledgeBaseRequest): Promise<any> {
+  try {
+    const response = await apiClient.post('/api/knowledge', request)
+    return response.data
+  } catch (error: any) {
+    console.error('创建知识库条目失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '创建知识库条目失败')
+  }
+}
+
+export async function updateKnowledgeBase(id: string, request: KnowledgeBaseRequest): Promise<any> {
+  try {
+    const response = await apiClient.put(`/api/knowledge/${id}`, request)
+    return response.data
+  } catch (error: any) {
+    console.error('更新知识库条目失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '更新知识库条目失败')
+  }
+}
+
+export async function deleteKnowledgeBase(id: string): Promise<any> {
+  try {
+    const response = await apiClient.delete(`/api/knowledge/${id}`)
+    return response.data
+  } catch (error: any) {
+    console.error('删除知识库条目失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '删除知识库条目失败')
+  }
+}
+
+export async function getKnowledgeBaseAttractions(): Promise<string[]> {
+  try {
+    const response = await apiClient.get('/api/knowledge/attractions')
+    return Array.isArray(response.data?.data) ? response.data.data : []
+  } catch (error: any) {
+    console.error('获取景区名称列表失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '获取景区名称列表失败')
+  }
+}
+
+export async function getKnowledgeBaseCategories(): Promise<string[]> {
+  try {
+    const response = await apiClient.get('/api/knowledge/categories')
+    return Array.isArray(response.data?.data) ? response.data.data : []
+  } catch (error: any) {
+    console.error('获取分类列表失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '获取分类列表失败')
+  }
+}
+
+export async function knowledgeBaseQA(request: KnowledgeBaseQARequest): Promise<KnowledgeBaseQAResponse> {
+  try {
+    const response = await apiClient.post('/api/knowledge/qa', request)
+    return response.data
+  } catch (error: any) {
+    console.error('知识库问答失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '知识库问答失败')
+  }
+}
+
+export interface QAHistoryItem {
+  id: string
+  question: string
+  answer: string
+  attraction_name?: string
+  references?: any[]
+  create_time?: string
+  update_time?: string
+}
+
+export async function getQAHistory(): Promise<QAHistoryItem[]> {
+  try {
+    const response = await apiClient.get('/api/knowledge/qa-history')
+    return Array.isArray(response.data?.data) ? response.data.data : []
+  } catch (error: any) {
+    console.error('获取问答记录失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '获取问答记录失败')
+  }
+}
+
+export async function saveQAHistory(data: { question: string; answer: string; attraction_name?: string; references?: any[] }): Promise<any> {
+  try {
+    const response = await apiClient.post('/api/knowledge/qa-history', data)
+    return response.data
+  } catch (error: any) {
+    console.error('保存问答记录失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '保存问答记录失败')
+  }
+}
+
+export async function clearQAHistory(): Promise<any> {
+  try {
+    const response = await apiClient.delete('/api/knowledge/qa-history')
+    return response.data
+  } catch (error: any) {
+    console.error('清除问答记录失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '清除问答记录失败')
+  }
+}
+
+export async function deleteQAHistory(id: string): Promise<any> {
+  try {
+    const response = await apiClient.delete(`/api/knowledge/qa-history/${id}`)
+    return response.data
+  } catch (error: any) {
+    console.error('删除问答记录失败:', error)
+    throw new Error(error.response?.data?.message || error.message || '删除问答记录失败')
+  }
+}
+
+
+export async function getProvinceNames(): Promise<string[]> {
+  try {
+    const response = await apiClient.get('/api/region/province-names')
+    return Array.isArray(response.data?.data) ? response.data.data : []
+  } catch (error: any) {
+    console.error('获取省份列表失败:', error)
+    return []
+  }
+}
+
+export async function getCityNamesByProvince(provinceName: string): Promise<string[]> {
+  try {
+    const response = await apiClient.get('/api/region/city-names', { params: { provinceName } })
+    return Array.isArray(response.data?.data) ? response.data.data : []
+  } catch (error: any) {
+    console.error('获取城市列表失败:', error)
+    return []
+  }
+}
+
+export async function getDistrictNamesByCity(cityName: string): Promise<string[]> {
+  try {
+    const response = await apiClient.get('/api/region/district-names', { params: { cityName } })
+    return Array.isArray(response.data?.data) ? response.data.data : []
+  } catch (error: any) {
+    console.error('获取区县列表失败:', error)
+    return []
+  }
+}

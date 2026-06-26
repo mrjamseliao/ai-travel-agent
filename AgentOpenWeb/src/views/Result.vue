@@ -307,7 +307,14 @@
 
                       <!-- 景点图片 -->
                       <div class="attraction-image-wrapper" :style="{ backgroundColor: getAttractionBgColor(item.name) }">
-                        <div class="attraction-emoji">{{ getAttractionIcon(item.name) }}</div>
+                        <img 
+                          v-if="(item.imageUrl || item.image_url) && !(item.imageUrl || item.image_url).includes('data:image/svg+xml')" 
+                          :src="item.imageUrl || item.image_url" 
+                          :alt="item.name"
+                          class="attraction-real-image"
+                          @error="handleImageError"
+                        />
+                        <div v-else class="attraction-emoji">{{ getAttractionIcon(item.name) }}</div>
                         <div class="attraction-badge">
                           <span class="badge-number">{{ index + 1 }}</span>
                         </div>
@@ -566,7 +573,6 @@ import OverviewAttractionCard from '@/components/OverviewAttractionCard.vue'
 import AIChat from '@/components/AIChat.vue'
 import type { TripPlan, TripPlanResponse, KnowledgeGraphData, GraphCategory, Attraction, Meal, Hotel, WeatherInfo } from '@/types'
 import {
-  getRuntimeApiBaseUrl,
   getRuntimeMapJsKey,
   getRuntimeGoogleMapsApiKey,
   getBackendRuntimeSettings,
@@ -912,10 +918,40 @@ const applyTripPlanPayload = async (payload: {
     sessionStorage.removeItem('graphData')
   }
 
+  savePlanToLocalStorage(payload.plan, payload.planId)
+
   // 使用tripPlan中的图片，不再调用外部接口
   if (activeSection.value === 'map') await ensureMapReady()
   if (activeSection.value === 'knowledge-graph') await ensureGraphReady()
   if (activeSection.value === 'overview') await initOverviewSwiper()
+}
+
+const savePlanToLocalStorage = (plan: TripPlan, planId?: string) => {
+  try {
+    const raw = localStorage.getItem('trip_plans')
+    const plans: any[] = raw ? JSON.parse(raw) : []
+    
+    const newPlan = {
+      id: planId || Date.now().toString(),
+      title: `${plan.city} ${plan.days.length}天旅行`,
+      city: plan.city,
+      date: `${plan.start_date} - ${plan.end_date}`,
+      createdAt: new Date().toISOString(),
+      data: plan
+    }
+    
+    const existingIndex = plans.findIndex(p => p.id === newPlan.id)
+    if (existingIndex >= 0) {
+      plans[existingIndex] = newPlan
+    } else {
+      plans.unshift(newPlan)
+    }
+    
+    localStorage.setItem('trip_plans', JSON.stringify(plans))
+    console.log('旅程计划已保存到 localStorage')
+  } catch (error) {
+    console.error('保存旅程计划失败:', error)
+  }
 }
 
 const restoreTripPlanFromResponse = async (response?: TripPlanResponse | null) => {
@@ -1759,50 +1795,6 @@ const restoreBudgetItem = (pendingItem: BudgetRestoreItem) => {
   message.success(t('result.messages.budgetItemRestored'))
 }
 
-// 加载所有景点图片
-const loadAttractionPhotos = async () => {
-  if (!tripPlan.value) return
-
-  const apiBase = getRuntimeApiBaseUrl()
-  const city = tripPlan.value.city
-  const uniqueNames = Array.from(
-    new Set(
-      tripPlan.value.days.flatMap((day) => day.attractions.map((attraction) => attraction.name))
-    )
-  ).filter((name) => name && !attractionPhotos.value[name])
-
-  if (uniqueNames.length === 0) return
-
-  const concurrencyLimit = 4
-  let currentIndex = 0
-
-  const loadNextPhoto = async () => {
-    while (currentIndex < uniqueNames.length) {
-      const index = currentIndex
-      currentIndex += 1
-      const name = uniqueNames[index]
-
-      try {
-        const response = await fetch(
-          `${apiBase}/api/poi/photo?name=${encodeURIComponent(name)}&city=${encodeURIComponent(city)}`
-        )
-        const data = await response.json()
-        if (data.success && data.data.photo_url) {
-          attractionPhotos.value[name] = data.data.photo_url
-        }
-      } catch (err) {
-        console.error(`获取${name}图片失败:`, err)
-      }
-    }
-  }
-
-  const workers = Array.from(
-    { length: Math.min(concurrencyLimit, uniqueNames.length) },
-    () => loadNextPhoto()
-  )
-  await Promise.all(workers)
-}
-
 // 获取景点图片
 const getAttractionImage = (name: string, _index: number): string => {
   // 如果已加载真实图片,返回真实图片
@@ -1814,6 +1806,9 @@ const getAttractionImage = (name: string, _index: number): string => {
   if (tripPlan.value) {
     for (const day of tripPlan.value.days) {
       const attraction = day.attractions.find((a: any) => a.name === name)
+      if (attraction && attraction.imageUrl && attraction.imageUrl.trim()) {
+        return attraction.imageUrl
+      }
       if (attraction && attraction.image_url && attraction.image_url.trim()) {
         return attraction.image_url
       }
@@ -1911,7 +1906,7 @@ const buildExportHTML = (mapDataUrl: string = ''): string => {
   tp.days.forEach((day, index) => {
     let attractionsHTML = ''
     day.attractions.forEach((a, ai) => {
-      const photoUrl = a.image_url || attractionPhotos.value[a.name] || ''
+      const photoUrl = a.imageUrl || a.image_url || attractionPhotos.value[a.name] || ''
       const durationText = t('result.export.durationLine', { duration: a.visit_duration || '—' })
       // 图片自适应：不压缩不裁剪，保持原始比例
       const imgTag = photoUrl
@@ -3161,6 +3156,15 @@ const drawRoutes = async (AMap: any, attractions: any[]): Promise<any[]> => {
 
 .attraction-emoji {
   font-size: 5rem;
+}
+
+.attraction-real-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .attraction-image {

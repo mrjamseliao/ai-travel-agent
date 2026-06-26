@@ -1,4 +1,5 @@
 using AiTravelAgent.Configuration;
+using AiTravelAgent.Services;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,6 +26,10 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSingleton(settings);
+builder.Services.AddSingleton(sp => DatabaseService.GetInstance(sp.GetRequiredService<AppSettings>()));
+builder.Services.AddSingleton<DatabaseInitService>();
+
 builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
     options.SerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
@@ -38,9 +43,41 @@ Console.WriteLine("\n" + new string('=', 60));
 Console.WriteLine($"{settings.AppName} v{settings.AppVersion}");
 Console.WriteLine(new string('=', 60));
 
+Console.WriteLine("\n" + new string('-', 60));
+Console.WriteLine("数据库连接信息:");
+Console.WriteLine($"  Provider: {settings.DbProvider}");
+Console.WriteLine($"  Type: {settings.DbType}");
+Console.WriteLine($"  Host: {settings.DbHost}:{settings.DbPort}");
+Console.WriteLine($"  Database: {settings.DbName}");
+Console.WriteLine($"  Account: {settings.DbAccount}");
+Console.WriteLine(new string('-', 60));
+
+try
+{
+    var dbService = DatabaseService.GetInstance(settings);
+    var dbConnected = await dbService.TestConnectionAsync();
+    if (dbConnected)
+    {
+        Console.WriteLine("✅ 数据库连接成功");
+        var initService = app.Services.GetRequiredService<DatabaseInitService>();
+        await initService.InitializeAsync();
+    }
+    else
+    {
+        Console.WriteLine("⚠️  数据库连接失败，服务将继续运行但部分功能不可用");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"⚠️  数据库连接测试异常: {ex.Message}");
+    Console.WriteLine("服务将继续运行但部分功能不可用");
+}
+
 app.UseCors("AllowAll");
 
 app.UseAuthorization();
+
+app.UseStaticFiles();
 
 app.MapControllers();
 

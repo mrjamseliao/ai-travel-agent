@@ -249,3 +249,19 @@ public class TripChatResponse
     public bool Success { get; set; } = true;
     public string Reply { get; set; } = "";
 }
+
+public class TripHistory
+{
+    public string Id { get; set; } = "";
+    public string? UserId { get; set; }
+    public string? City { get; set; }
+    public string? Days { get; set; }
+    public string? Preferences { get; set; }
+    public string? Budget { get; set; }
+    public string? DepartureDate { get; set; }
+    public string? TaskId { get; set; }
+    public string Status { get; set; } = "pending";
+    public string? PlanData { get; set; }
+    public string? CreateTime { get; set; }
+    public string? UpdateTime { get; set; }
+}

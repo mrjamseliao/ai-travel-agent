@@ -13,6 +13,7 @@ export interface Attraction {
   description: string
   category?: string
   rating?: number
+  imageUrl?: string
   image_url?: string
   ticket_price?: number
 }
@@ -97,12 +98,21 @@ export interface TripPlanResponse {
 }
 
 export interface TripHistoryItem {
+  id?: string
   plan_id: string
-  task_id: string
+  task_id?: string
   city: string
   start_date: string
   end_date: string
   travel_days: number
+  days?: string
+  date?: string
+  title?: string
+  created_at?: string
+  create_time?: string
+  update_time?: string
+  status?: string
+  plan_data?: string
   updated_at: string
   overall_suggestions?: string
 }
@@ -230,3 +240,11 @@ export interface HealthCheckResponse {
   timestamp: string
   uptime: string
 }
+
+export type {
+  KnowledgeBaseItem,
+  KnowledgeBaseRequest,
+  KnowledgeBaseSearchRequest,
+  KnowledgeBaseQARequest,
+  KnowledgeBaseQAResponse
+} from './admin'
